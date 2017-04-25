@@ -8,7 +8,4 @@ namespace Noldors\Queues\Exceptions;
  *
  * @package Noldors\Queues\Exceptions
  */
-class NotClassMethodCallbackException extends \Exception
-{
-
-}
+class NotClassMethodCallbackException extends \Exception {}

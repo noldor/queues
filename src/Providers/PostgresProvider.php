@@ -70,7 +70,7 @@ class PostgresProvider extends DatabaseProvider
      *
      * @return string
      */
-    private function getDsn(?string $host, ?int $port, ?array $ssl)
+    private function getDsn(?string $host, ?int $port, ?array $ssl): string
     {
         $host = !is_null($host) ? "host={$host};" : '';
 
@@ -92,15 +92,15 @@ class PostgresProvider extends DatabaseProvider
      *
      * @param array|string|null $schema
      *
-     * @return string
+     * @return void
      */
-    private function setSchema($schema)
+    private function setSchema($schema): void
     {
         if (!is_null($schema)) {
             if (is_array($schema)) {
-                $schema = '"'.implode('", "', $schema).'"';
+                $schema = '"' . implode('", "', $schema) . '"';
             } else {
-                return '"'.$schema.'"';
+                $schema = '"' . $schema . '"';
             }
 
             $this->pdo->exec("set search_path to {$schema}");
@@ -112,7 +112,7 @@ class PostgresProvider extends DatabaseProvider
      *
      * @return bool
      */
-    protected function tableExists()
+    protected function tableExists(): bool
     {
         $tableExist = $this->pdo->query("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE  table_schema = '{$this->databaseName}' AND table_name = '{$this->tableName}');")->fetchColumn();
 

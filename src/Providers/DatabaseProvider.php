@@ -15,7 +15,11 @@ use Noldors\Queues\Exceptions\NotClassMethodCallbackException;
  */
 abstract class DatabaseProvider
 {
+    /**
+     * Table name without prefix.
+     */
     public const TABLE_NAME = 'queues';
+
     /**
      * Pdo instance.
      *

@@ -8,7 +8,4 @@ namespace Noldors\Queues\Exceptions;
  *
  * @package Noldors\Queues\Exceptions
  */
-class MethodNotFoundException extends \Exception
-{
-
-}
+class MethodNotFoundException extends \Exception {}

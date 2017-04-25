@@ -8,7 +8,4 @@ namespace Noldors\Queues\Exceptions;
  *
  * @package Noldors\Queues\Exceptions
  */
-class ProviderExtensionNotInstalledException extends \Exception
-{
-
-}
+class ProviderExtensionNotInstalledException extends \Exception {}

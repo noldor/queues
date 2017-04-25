@@ -46,7 +46,7 @@ class SqliteProvider extends DatabaseProvider implements ProviderInterface
      *
      * @return bool
      */
-    protected function tableExists()
+    protected function tableExists(): bool
     {
         $tableExist = $this->pdo->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='{$this->tableName}'")->fetchColumn();
 

@@ -8,7 +8,4 @@ namespace Noldors\Queues\Exceptions;
  *
  * @package Noldors\Queues\Exceptions
  */
-class ClassNotFoundException extends \Exception
-{
-
-}
+class ClassNotFoundException extends \Exception {}

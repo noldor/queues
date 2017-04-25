@@ -77,8 +77,10 @@ class MysqlProvider extends DatabaseProvider implements ProviderInterface
      *
      * @param array|null $modes
      * @param            $strict
+     *
+     * @return void
      */
-    private function setModes(?array $modes, bool $strict)
+    private function setModes(?array $modes, bool $strict): void
     {
         if (!is_null($modes)) {
             $this->setCustomModes($modes);
@@ -95,8 +97,10 @@ class MysqlProvider extends DatabaseProvider implements ProviderInterface
      * Set user specified modes.
      *
      * @param array $modes
+     *
+     * @return void
      */
-    private function setCustomModes(array $modes)
+    private function setCustomModes(array $modes): void
     {
         $modes = implode(',', $modes);
 
@@ -118,7 +122,7 @@ class MysqlProvider extends DatabaseProvider implements ProviderInterface
      *
      * @return bool
      */
-    protected function tableExists()
+    protected function tableExists(): bool
     {
         $tableExist = $this->pdo->query("SELECT count(*) FROM information_schema.tables WHERE table_schema = '{$this->databaseName}' AND `table_name` = '{$this->tableName}'")->fetchColumn();
 

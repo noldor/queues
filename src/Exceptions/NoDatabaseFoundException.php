@@ -8,7 +8,4 @@ namespace Noldors\Queues\Exceptions;
  *
  * @package Noldors\Queues\Exceptions
  */
-class NoDatabaseFoundException extends \Exception
-{
-
-}
+class NoDatabaseFoundException extends \Exception {}
