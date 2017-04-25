@@ -3,12 +3,19 @@ declare(strict_types=1);
 
 namespace Noldors\Queues\Providers;
 
+use Noldors\Helpers\Str;
 use Noldors\Queues\Exceptions\ClassNotFoundException;
 use Noldors\Queues\Exceptions\MethodNotFoundException;
 use Noldors\Queues\Exceptions\NotClassMethodCallbackException;
 
+/**
+ * Abstract class for database providers.
+ *
+ * @package Noldors\Queues\Providers
+ */
 abstract class DatabaseProvider
 {
+    public const TABLE_NAME = 'queues';
     /**
      * Pdo instance.
      *
@@ -34,9 +41,10 @@ abstract class DatabaseProvider
     public function push(string $handler, array $data): bool
     {
         $this->checkCallback($handler);
-        $queue = $this->pdo->prepare("INSERT INTO {$this->tableName} (handler, data, status) VALUES (:handler, :data, 0)");
-        $queue->bindParam(':handler', $handler);
-        $queue->bindParam(':data', json_encode($data));
+        $queue = $this->pdo->prepare("INSERT INTO {$this->tableName} (handler, data, status) VALUES (:handler, :data, :status)");
+        $queue->bindValue(':handler', $handler, \PDO::PARAM_STR);
+        $queue->bindValue(':data', json_encode($data), \PDO::PARAM_STR);
+        $queue->bindValue(':status', false, \PDO::PARAM_BOOL);
 
         return $queue->execute();
     }
@@ -46,9 +54,13 @@ abstract class DatabaseProvider
      *
      * @return array
      */
-    private function getQueues()
+    protected function getQueues(): array
     {
-        return $this->pdo->query("SELECT id, handler, data FROM {$this->tableName} WHERE status = 0 ORDER BY id ASC")->fetchAll(\PDO::FETCH_ASSOC);
+        $queues = $this->pdo->prepare("SELECT id, handler, data FROM {$this->tableName} WHERE status = :status ORDER BY id ASC");
+        $queues->bindValue(':status', false, \PDO::PARAM_BOOL);
+        $queues->execute();
+
+        return $queues->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     /**
@@ -56,7 +68,7 @@ abstract class DatabaseProvider
      *
      * @return void
      */
-    public function execute()
+    public function execute(): void
     {
         foreach ($this->getQueues() as $queue) {
             $this->executeQueue($queue);
@@ -70,12 +82,15 @@ abstract class DatabaseProvider
      *
      * @throws \Noldors\Queues\Exceptions\ClassNotFoundException
      * @throws \Noldors\Queues\Exceptions\MethodNotFoundException
+     *
+     * @return void
      */
-    private function executeQueue(array $queue)
+    protected function executeQueue(array $queue): void
     {
         $data = json_decode($queue['data'], true);
 
-        $handler = $this->parseCallback($queue['handler']);
+        $this->checkCallback($queue['handler']);
+        $handler = (new Str($queue['handler']))->parseCallback();
 
         if (!class_exists($handler['class'])) {
             throw new ClassNotFoundException("Class {$handler['class']} not found");
@@ -102,36 +117,13 @@ abstract class DatabaseProvider
      *
      * @return bool
      */
-    protected function setExecutionStatus(int $id)
+    protected function setExecutionStatus(int $id): bool
     {
-        $queue = $this->pdo->prepare("UPDATE {$this->tableName} SET status = 1 WHERE id = ?");
+        $queue = $this->pdo->prepare("UPDATE {$this->tableName} SET status = :status WHERE id = :id");
+        $queue->bindValue(':status', true, \PDO::PARAM_BOOL);
+        $queue->bindValue(':id', $id, \PDO::PARAM_INT);
 
-        return $queue->execute([$id]);
-    }
-
-    /**
-     * Parse handler string to get class and method.
-     *
-     * @param string $handler
-     *
-     * @return array
-     * @throws \Noldors\Queues\Exceptions\NotClassMethodCallbackException
-     */
-    protected function parseCallback(string $handler)
-    {
-        if (mb_stripos($handler, '@', 0, 'UTF-8') !== false) {
-            [$class, $method] = explode('@', $handler);
-
-            return ['class' => $class, 'method' => $method];
-        }
-
-        if (mb_stripos($handler, '::', 0, 'UTF-8') !== false) {
-            [$class, $method] = explode('::', $handler);
-
-            return ['class' => $class, 'method' => $method];
-        }
-
-        throw new NotClassMethodCallbackException('Handler must be like \Namespace\ClassName::methodName for static methods, \Namespace\ClassName@methodName namespace not required.');
+        return $queue->execute();
     }
 
     /**
@@ -142,12 +134,9 @@ abstract class DatabaseProvider
      * @return bool
      * @throws \Noldors\Queues\Exceptions\NotClassMethodCallbackException
      */
-    protected function checkCallback(string $handler)
+    protected function checkCallback(string $handler): bool
     {
-        if (
-            (mb_stripos($handler, '@', 0, 'UTF-8') === false) &&
-            (mb_stripos($handler, '::', 0, 'UTF-8') === false)
-        ) {
+        if (!(new Str($handler))->checkCallback()) {
             throw new NotClassMethodCallbackException('Handler must be like \Namespace\ClassName::methodName for static methods, \Namespace\ClassName@methodName namespace not required.');
         }
 

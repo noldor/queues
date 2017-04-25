@@ -3,6 +3,11 @@ declare(strict_types=1);
 
 namespace Noldors\Queues\Contracts;
 
+/**
+ * Interface for queues storage.
+ *
+ * @package Noldors\Queues\Contracts
+ */
 interface ProviderInterface
 {
     /**
@@ -13,12 +18,12 @@ interface ProviderInterface
      *
      * @return bool
      */
-    public function push(string $handler, array $data):bool;
+    public function push(string $handler, array $data): bool;
 
     /**
-     * Execute all queues.
+     * Execute all new queues.
      *
      * @return void
      */
-    public function execute();
+    public function execute(): void;
 }

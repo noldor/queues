@@ -1,0 +1,6 @@
+rules:
+  # PHP classes should be short
+    php.class_too_long:
+      enabled: false
+      max_length: 3000
+      threshold: 5

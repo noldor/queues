@@ -4,11 +4,14 @@ declare(strict_types=1);
 namespace Noldors\Queues\Providers;
 
 use Noldors\Queues\Contracts\ProviderInterface;
-use Noldors\Queues\Exceptions\ClassNotFoundException;
-use Noldors\Queues\Exceptions\MethodNotFoundException;
 use Noldors\Queues\Exceptions\NoDatabaseFoundException;
 use Noldors\Queues\Exceptions\ProviderExtensionNotInstalledException;
 
+/**
+ * Store all queues in Sqlite database.
+ *
+ * @package Noldors\Queues\Providers
+ */
 class SqliteProvider extends DatabaseProvider implements ProviderInterface
 {
     /**
@@ -25,12 +28,13 @@ class SqliteProvider extends DatabaseProvider implements ProviderInterface
         if (!file_exists($pathToDatabase)) {
             throw new NoDatabaseFoundException("There are no sqlite database in {$pathToDatabase}");
         }
+
         if (!extension_loaded('pdo_sqlite')) {
             throw new ProviderExtensionNotInstalledException('pdo_sqlite extension not loaded or installed');
         }
 
         $this->pdo = new \PDO("sqlite:{$pathToDatabase}");
-        $this->tableName = $prefix . 'queues';
+        $this->tableName = $prefix . static::TABLE_NAME;
 
         if (!$this->tableExists()) {
             $this->createTable();
@@ -44,7 +48,7 @@ class SqliteProvider extends DatabaseProvider implements ProviderInterface
      */
     protected function tableExists()
     {
-        $tableExist = $this->pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='{$this->tableName}'")->fetchColumn();
+        $tableExist = $this->pdo->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='{$this->tableName}'")->fetchColumn();
 
         return ($tableExist === false) ? false : true;
     }
